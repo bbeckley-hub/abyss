@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virulence Factors — ABYSS</title>
+<style>
+:root {
+    --gold: #d4af37; --navy: #0a1628;
+    --accent: #e11d48; --accent-dark: #e11d48;
+    --accent-light: #e11d4822;
+    --bg: #f8fafc; --card: #ffffff; --text: #1e293b;
+    --muted: #64748b; --border: #e2e8f0;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: var(--bg); color: var(--text); line-height: 1.55; }
+.argus-nav { background: var(--navy); color: white; padding: 20px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #e11d4844; }
+.argus-nav .brand { display: flex; align-items: center; gap: 20px;
+    text-decoration: none; flex-shrink: 0; }
+.argus-nav .brand-emoji { font-size: 5.6em; line-height: 1;
+    filter: drop-shadow(0 0 14px #e11d48aa); flex-shrink: 0; }
+.argus-nav .brand-text { display: flex; flex-direction: column; gap: 3px; }
+.argus-nav .brand-name { font-weight: 900; font-size: 3.45em;
+    letter-spacing: 2px; color: var(--gold); line-height: 1; }
+.argus-nav .brand-tagline { font-size: 1.0em; font-weight: 400;
+    color: #94a3b8; line-height: 1.15; max-width: 520px; }
+.argus-nav .links { display: flex; gap: 3px; align-items: center; flex-wrap: wrap; }
+.argus-nav .links a { color: #cbd5e1; text-decoration: none;
+    padding: 7px 12px; border-radius: 6px; font-size: 0.84em; font-weight: 500;
+    transition: all 0.15s; white-space: nowrap; }
+.argus-nav .links a:hover { background: rgba(255,255,255,0.08); color: white; }
+.argus-nav .links a.active { background: #e11d48; color: white;
+    font-weight: 700; box-shadow: 0 3px 10px #e11d4866; }
+
+.page-header {
+    background: radial-gradient(circle at 20% 30%, #e11d4822 0%, transparent 55%),
+                radial-gradient(circle at 80% 70%, #e11d4814 0%, transparent 45%),
+                linear-gradient(135deg, #0a1628 0%, #042f2e 55%, #134e4a 100%);
+    color: white; padding: 44px 32px 36px;
+    position: relative; overflow: hidden; }
+.page-header::before { content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-size: 36px 36px; opacity: 0.6; pointer-events: none; }
+.page-header .inner { position: relative; z-index: 1; max-width: 1400px; }
+.page-header .eyebrow { display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.78em; font-weight: 800; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #e11d48;
+    padding: 5px 14px; border-radius: 20px;
+    background: #e11d4822; border: 1px solid #e11d4844; margin-bottom: 12px; }
+.page-header h1 { font-size: 2.6em; margin-bottom: 6px; font-weight: 900;
+    letter-spacing: -0.5px; line-height: 1.1; }
+.page-header .subtitle { color: #cbd5e1; font-size: 1.05em; margin-bottom: 24px; }
+
+main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 60px; }
+
+.tab-strip { display: flex; gap: 6px; margin-bottom: 20px;
+    background: var(--card); padding: 8px; border-radius: 12px;
+    border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    width: fit-content; }
+.tab-btn { padding: 10px 22px; border: none; border-radius: 8px;
+    background: transparent; color: var(--muted); font-size: 0.92em;
+    font-weight: 700; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.tab-btn:hover { background: #f1f5f9; color: var(--text); }
+.tab-btn.active { background: #e11d48; color: white;
+    box-shadow: 0 3px 10px #e11d4855; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.gene-picker { background: var(--card); border-radius: 12px;
+    border: 1px solid var(--border); padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 18px; }
+.picker-label { font-size: 0.82em; color: var(--muted);
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 10px; display: block; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.gene-chip { padding: 6px 14px; border-radius: 16px;
+    border: 2px solid var(--border); background: white; color: var(--text);
+    font-size: 0.85em; font-weight: 700; cursor: pointer;
+    transition: all 0.15s; font-family: 'SF Mono', Monaco, monospace; }
+.gene-chip:hover { border-color: #e11d48; color: #e11d48; }
+.gene-chip.selected { background: #e11d48; border-color: #e11d48;
+    color: white; box-shadow: 0 3px 8px #e11d4855; }
+.gene-chip.disabled { opacity: 0.4; cursor: not-allowed; background: #f1f5f9; }
+.gene-chip .prevalence { font-size: 0.85em; opacity: 0.7;
+    margin-left: 4px; font-weight: 600; }
+
+.selected-bar { display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-radius: 10px; background: #f8fafc;
+    border: 1px solid var(--border); margin-bottom: 14px;
+    min-height: 54px; flex-wrap: wrap; }
+.selected-bar .label { font-size: 0.82em; color: var(--muted);
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.selected-gene { display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 16px; background: #e11d48;
+    color: white; font-size: 0.85em; font-weight: 700;
+    font-family: 'SF Mono', Monaco, monospace; }
+.selected-gene .remove { cursor: pointer; font-weight: 900;
+    padding: 0 4px; opacity: 0.85; }
+.selected-empty { color: var(--muted); font-style: italic; font-size: 0.9em; }
+.mode-toggle { display: flex; gap: 4px; background: #f1f5f9;
+    padding: 4px; border-radius: 8px; margin-left: auto; }
+.mode-btn { padding: 6px 16px; border: none; border-radius: 6px;
+    background: transparent; cursor: pointer; font-size: 0.85em;
+    font-weight: 700; color: var(--muted); font-family: inherit; }
+.mode-btn.active { background: white; color: #e11d48;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+.result-bar { display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.result-count { font-size: 1.05em; font-weight: 700; color: var(--text); }
+.result-count strong { color: #e11d48; font-size: 1.15em; }
+.result-hint { color: var(--muted); font-size: 0.92em; }
+.export-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.export-btn { padding: 9px 16px; border: none; border-radius: 8px;
+    font-size: 0.88em; font-weight: 700; cursor: pointer;
+    transition: all 0.15s; color: white; background: #e11d48;
+    font-family: inherit; }
+.export-btn:hover:not(:disabled) { transform: translateY(-1px);
+    box-shadow: 0 4px 12px #e11d4855; }
+.export-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.export-btn.secondary { background: #64748b; }
+
+.table-wrap { background: var(--card); border-radius: 12px;
+    border: 1px solid var(--border); overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.table-scroll { max-height: 68vh; overflow: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88em; }
+thead th { background: #f1f5f9; padding: 11px 13px; text-align: left;
+    font-weight: 800; color: #334155; font-size: 0.78em;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    position: sticky; top: 0; z-index: 5;
+    cursor: pointer; user-select: none;
+    border-bottom: 2px solid var(--border); white-space: nowrap; }
+thead th:hover { background: #e2e8f0; }
+tbody td { padding: 10px 13px; border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle; }
+tbody tr:hover td { background: #fafbfc; }
+.accession-cell { font-family: 'SF Mono', Monaco, monospace;
+    font-weight: 700; color: var(--navy); font-size: 0.85em; }
+.meta-cell { font-size: 0.85em; color: #475569; }
+.match-yes { color: #059669; font-weight: 900; font-size: 1.1em; text-align: center; }
+.match-no  { color: #e2e8f0; text-align: center; }
+.copy-btn { padding: 4px 10px; font-size: 0.78em; font-weight: 700;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: white; cursor: pointer; font-family: inherit;
+    color: var(--muted); transition: all 0.15s; }
+.copy-btn:hover { border-color: #e11d48; color: #e11d48; }
+
+.freq-controls { display: flex; gap: 12px; margin-bottom: 14px;
+    flex-wrap: wrap; background: var(--card); padding: 14px 18px;
+    border-radius: 12px; border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04); align-items: center; }
+.freq-controls input, .freq-controls select {
+    padding: 9px 12px; border: 2px solid var(--border);
+    border-radius: 8px; font-size: 0.9em; font-family: inherit;
+    color: var(--text); outline: none; }
+.freq-controls input { flex: 1; min-width: 200px; }
+.freq-controls input:focus, .freq-controls select:focus { border-color: #e11d48; }
+.prev-bar-track { flex: 1; height: 10px; background: #f1f5f9;
+    border-radius: 5px; overflow: hidden; }
+.prev-bar-fill { height: 100%; background: linear-gradient(90deg, #e11d48 0%, #e11d48 100%); border-radius: 5px; }
+.prev-cell { display: flex; align-items: center; gap: 10px; min-width: 200px; }
+.prev-value { font-weight: 700; font-size: 0.88em; min-width: 52px; text-align: right; }
+.num-cell { font-family: 'SF Mono', Monaco, monospace;
+    font-weight: 700; color: #334155; text-align: right; }
+.gene-name { font-family: 'SF Mono', Monaco, monospace;
+    font-weight: 700; color: var(--text); }
+
+.pagination { display: flex; gap: 12px; align-items: center;
+    justify-content: center; padding: 14px 18px; background: #f8fafc;
+    border-top: 1px solid var(--border); font-size: 0.88em; flex-wrap: wrap; }
+.pagination button { padding: 7px 14px; border: 1px solid var(--border);
+    background: white; border-radius: 6px; cursor: pointer;
+    font-weight: 600; color: var(--text); font-family: inherit; }
+.pagination button:hover:not(:disabled) { background: #e11d48; color: white; border-color: #e11d48; }
+.pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+.pagination .page-info { color: var(--muted); font-weight: 600; }
+.page-size-label { display: flex; align-items: center; gap: 6px;
+    font-size: 0.85em; color: var(--muted); font-weight: 700;
+    margin-left: auto; white-space: nowrap; }
+.page-size-label select { padding: 5px 8px; border: 1px solid var(--border);
+    border-radius: 6px; background: white; font-family: inherit;
+    font-size: 1em; cursor: pointer; font-weight: 700; color: var(--text); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state .icon { font-size: 3em; opacity: 0.4; margin-bottom: 12px; }
+
+.about-content { background: var(--card); border-radius: 12px;
+    padding: 30px 36px; border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04); max-width: 900px; }
+.about-content h2 { color: var(--navy); margin-bottom: 14px;
+    font-size: 1.5em; border-bottom: 3px solid #e11d48;
+    padding-bottom: 10px; display: inline-block; }
+.about-content h3 { color: #334155; margin: 24px 0 10px; font-size: 1.1em; }
+.about-content p { margin-bottom: 12px; color: #475569; }
+.about-content ul, .about-content ol { padding-left: 24px; margin-bottom: 14px; }
+.about-content li { margin-bottom: 6px; color: #475569; }
+.about-content code { background: #f1f5f9; padding: 2px 6px;
+    border-radius: 4px; font-size: 0.9em; font-family: 'SF Mono', Monaco, monospace; }
+.about-content a { color: #e11d48; text-decoration: none; font-weight: 700; }
+
+.argus-footer { background: var(--navy); color: #94a3b8; padding: 32px;
+    text-align: center; font-size: 0.86em; margin-top: 60px;
+    border-top: 2px solid #e11d4833; }
+.argus-footer a { color: var(--gold); text-decoration: none; }
+.argus-footer a:hover { text-decoration: underline; }
+.argus-footer .footer-line { margin: 6px 0; }
+.argus-footer .full-name { color: #cbd5e1; font-size: 0.95em;
+    letter-spacing: 0.2px; font-weight: 600; }
+.argus-footer .full-name strong { color: var(--gold); }
+
+@media (max-width: 900px) {
+    .argus-nav { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .argus-nav .brand-tagline { max-width: 100%; }
+    .argus-nav .brand-emoji { font-size: 3.6em; }
+    .argus-nav .brand-name { font-size: 2.2em; }
+}
+@media (max-width: 700px) {
+    .page-header { padding: 28px 20px 24px; }
+    .page-header h1 { font-size: 1.8em; }
+    main { padding: 20px 16px 40px; }
+    .argus-nav { padding: 14px 16px; }
+    .tab-strip { width: 100%; }
+    .mode-toggle { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<nav class="argus-nav">
+    <a class="brand" href="../index.html">
+        <span class="brand-emoji">🌊</span>
+        <span class="brand-text">
+            <span class="brand-name"><span style="color:#0d9488">A</span><span style="color:#14b8a6">B</span><span style="color:#06b6d4">Y</span><span style="color:#0891b2">S</span><span style="color:#155e75">S</span></span>
+            <span class="brand-tagline">Acinetobacter baumannii Yielding Surveillance System</span>
+        </span>
+    </a>
+    <div class="links"><a href="../index.html">Home</a><a href="mlst.html">MLST</a><a href="capsule.html">Capsule</a><a href="../master.html">Master</a><a href="amr.html">AMR</a><a href="vfdb.html" class="active">Virulence</a><a href="plasmid.html">Plasmid</a><a href="../statistics.html">Statistics</a><a href="../geography.html">Geography</a><a href="../lineages.html">Lineages</a><a href="../downloads.html">Downloads</a><a href="../about.html">About</a></div>
+</nav>
+
+<header class="page-header">
+    <div class="inner">
+        <div class="eyebrow">🦠 GENE MODULE</div>
+        <h1>Virulence Factors</h1>
+        <div class="subtitle">VFDB gene catalogue · biofilm, iron uptake, T6SS</div>
+    </div>
+</header>
+
+<main>
+    <div class="tab-strip">
+        <button class="tab-btn active" data-tab="search">🔎 Gene Search</button>
+        <button class="tab-btn" data-tab="freq">📊 All Genes</button>
+        <button class="tab-btn" data-tab="about">ℹ️ About</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-search">
+        <div class="gene-picker">
+            <span class="picker-label">Quick pick — 22 clinically-prioritised Virulence genes</span>
+            <div class="chip-row" id="chip-row"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82em;color:#94a3b8;">
+                <span>Pick up to 5 genes. Match ALL = samples must carry every selected gene.</span>
+                <span id="load-status" style="display:none;font-weight:600;color:#059669;"></span>
+            </div>
+        </div>
+
+        <div class="selected-bar" id="selected-bar"></div>
+
+        <div class="result-bar">
+            <div class="result-count" id="result-count"><span class="result-hint">No genes selected</span></div>
+            <div class="export-bar">
+                <button class="export-btn" data-fmt="tsv" disabled>⬇ TSV</button>
+                <button class="export-btn" data-fmt="csv" disabled>⬇ CSV</button>
+                <button class="export-btn" data-fmt="json" disabled>⬇ JSON</button>
+                <button class="export-btn secondary" data-fmt="accessions" disabled>🧬 Accessions</button>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table>
+                    <thead id="table-head"></thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <div class="tab-panel" id="tab-freq">
+        <div class="freq-controls">
+            <input type="text" id="freq-search" placeholder="🔍 Search gene name...">
+            <input type="number" id="freq-min-pct" value="0" min="0" max="100" step="1"
+                   style="width:140px;" placeholder="Min prevalence %">
+        </div>
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table>
+                    <thead id="freq-head"></thead>
+                    <tbody id="freq-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <p style="margin-top:14px;font-size:0.86em;color:#94a3b8;">
+            Showing up to 2,000 rows. Full table available in
+            <a href="../downloads.html" style="color:#e11d48;font-weight:700;">Downloads</a>.
+        </p>
+    </div>
+
+    <div class="tab-panel" id="tab-about">
+        <div class="about-content">
+            <h2>About this module</h2>
+            <p>
+                Retrieval of <em>Acinetobacter baumannii</em> genomes by
+                <strong>Virulence</strong>. Pick up to five genes, choose
+                <strong>ANY</strong> or <strong>ALL</strong>, and export the
+                accession list — ready for
+                <code>datasets download genome accession --inputfile list.txt</code>.
+            </p>
+
+            <h3>Source</h3>
+            <p>
+                Gene presence/absence derived from
+                <strong>Shelenkov et al.</strong>'s <em>A. baumannii</em> genomic
+                dataset (Zenodo 10.5281/zenodo.19186935).
+            </p>
+
+            <h3>How to use it</h3>
+            <ol>
+                <li>Click a chip or use <strong>All Genes</strong> to find a specific gene</li>
+                <li>Add up to 5 genes</li>
+                <li>Switch between <strong>Match ANY</strong> and <strong>Match ALL</strong></li>
+                <li>Click <strong>🧬 Accessions</strong> to download</li>
+                <li>TSV / CSV / JSON exports include country, source, and year per genome</li>
+            </ol>
+
+            <h3>Data coverage</h3>
+            <ul>
+                <li><strong>59,160</strong> <em>A. baumannii</em> genomes in the collection</li>
+                <li><strong>22</strong> curated Virulence genes</li>
+            </ul>
+
+            <h3>Full data download</h3>
+            <p>
+                Complete presence matrix:
+                <a href="../downloads.html">vfdb_all.tsv.gz</a>
+                (via Downloads).
+            </p>
+
+            <h3>Cite</h3>
+            <ul>
+                <li>Beckley B, Amarh V, Lopes BS, et al. <em>AcinetoScope</em>.
+                    <em>Sci Rep</em>. 2026.
+                    <a href="https://doi.org/10.1038/s41598-026-70189-y" target="_blank">DOI</a></li>
+                <li>Shelenkov A, et al. <em>A. baumannii</em> genomic dataset. Zenodo. 2025.
+                    <a href="https://zenodo.org/records/19186935" target="_blank">Zenodo</a></li>
+            </ul>
+        </div>
+    </div>
+</main>
+
+<footer class="argus-footer">
+    <div class="footer-line full-name">
+        <strong>ABYSS</strong> — Acinetobacter baumannii Yielding Surveillance System
+    </div>
+    <div class="footer-line">
+        Part of the <strong style="color:#d4af37;">ARGUS</strong> family ·
+        University of Ghana Medical School · MIT License
+    </div>
+    <div class="footer-line">
+        Data updated 2026-10-13 13:20:41 ·
+        <a href="https://github.com/bbeckley-hub/abyss">GitHub</a> ·
+        <a href="../about.html">About</a> ·
+        <a href="mailto:brownbeckley94@gmail.com">Contact</a>
+    </div>
+</footer>
+
+<script>
+const GENE_META = [{"id": "bap", "label": "bap", "desc": "Biofilm-associated protein", "n": 34387, "pct": 72.03}, {"id": "pga", "label": "pga (A-D)", "desc": "", "n": 189697, "pct": 397.37}, {"id": "csu", "label": "csu (A-E)", "desc": "Csu pili — biofilm formation", "n": 232341, "pct": 486.7}, {"id": "bas", "label": "acinetobactin (bas)", "desc": "", "n": 426635, "pct": 893.7}, {"id": "bau", "label": "baumanoferrin (bau)", "desc": "", "n": 271513, "pct": 568.76}, {"id": "fep", "label": "fep (A-G)", "desc": "", "n": 7, "pct": 0.01}, {"id": "iutA", "label": "iutA", "desc": "", "n": 3, "pct": 0.01}, {"id": "iro", "label": "iro (B-E, N)", "desc": "", "n": 6, "pct": 0.01}, {"id": "tss", "label": "T6SS (tssA-M)", "desc": "", "n": 348773, "pct": 730.6}, {"id": "hcp", "label": "hcp (T6SS)", "desc": "", "n": 10, "pct": 0.02}, {"id": "vgrG", "label": "vgrG (T6SS)", "desc": "", "n": 46137, "pct": 96.65}, {"id": "hsi", "label": "hsi (T6SS island)", "desc": "", "n": 7, "pct": 0.01}, {"id": "tse", "label": "T6SS effectors (tse)", "desc": "", "n": 2892, "pct": 6.06}, {"id": "ompa", "label": "ompA", "desc": "Outer membrane protein A — immune evasion", "n": 47705, "pct": 99.93}, {"id": "fim", "label": "fim (A-H)", "desc": "", "n": 14, "pct": 0.03}, {"id": "pil", "label": "pil (A-Z)", "desc": "", "n": 1006388, "pct": 2108.15}, {"id": "flg", "label": "flagellar (flg)", "desc": "", "n": 19, "pct": 0.04}, {"id": "fli", "label": "flagellar (fli)", "desc": "", "n": 27, "pct": 0.06}, {"id": "aba", "label": "abaI / abaR", "desc": "", "n": 89992, "pct": 188.51}, {"id": "lpx", "label": "lpx (A-D)", "desc": "Lipid A biosynthesis — colistin target", "n": 190799, "pct": 399.68}, {"id": "lpsB", "label": "lpsB", "desc": "", "n": 47715, "pct": 99.95}, {"id": "ade", "label": "RND efflux (ade)", "desc": "AdeABC / AdeIJK multidrug efflux", "n": 142688, "pct": 298.9}];
+const SAMPLE_INDEX_URL = "data/vfdb_samples.json";
+const DB_KEY = "vfdb";
+const MAX_GENES = 5;
+
+let sampleIndex = null;
+let indexLoaded = false;
+let indexLoading = false;
+let selected = [];
+let matchMode = 'ANY';
+let results = [];
+let currentPage = 1;
+let pageSize = 100;
+
+const tbody = document.getElementById('table-body');
+const thead = document.getElementById('table-head');
+const resultCount = document.getElementById('result-count');
+const paginationEl = document.getElementById('pagination');
+const selectedBar = document.getElementById('selected-bar');
+const chipRow = document.getElementById('chip-row');
+const loadStatus = document.getElementById('load-status');
+
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function download(filename, content, mime) {
+    const blob = new Blob([content], { type: mime + ';charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+}
+
+async function ensureIndex() {
+    if (indexLoaded || indexLoading) return;
+    indexLoading = true;
+    loadStatus.textContent = 'Loading sample index…';
+    loadStatus.style.display = 'inline-block';
+    try {
+        const resp = await fetch(SAMPLE_INDEX_URL);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        sampleIndex = await resp.json();
+        indexLoaded = true;
+        loadStatus.textContent = '✓ Index loaded (' +
+            Object.keys(sampleIndex.samples).length.toLocaleString() + ' samples)';
+        setTimeout(() => { loadStatus.style.display = 'none'; }, 2000);
+        runSearch();
+    } catch (e) {
+        loadStatus.textContent = '⚠️ Could not load index: ' + e.message;
+        loadStatus.style.color = '#dc2626';
+    } finally {
+        indexLoading = false;
+    }
+}
+
+function renderChips() {
+    chipRow.innerHTML = GENE_META.map((g, i) => {
+        const isSel = selected.includes(i);
+        const isDisabled = !isSel && selected.length >= MAX_GENES;
+        const cls = 'gene-chip' + (isSel ? ' selected' : '') + (isDisabled ? ' disabled' : '');
+        return '<button class="' + cls + '" data-idx="' + i + '" title="' +
+            esc(g.desc || g.label) + '">' + esc(g.label) +
+            '<span class="prevalence">' + g.pct.toFixed(1) + '%</span></button>';
+    }).join('');
+    chipRow.querySelectorAll('.gene-chip').forEach(b => {
+        b.addEventListener('click', () => {
+            const i = parseInt(b.dataset.idx);
+            if (selected.includes(i)) selected = selected.filter(x => x !== i);
+            else if (selected.length < MAX_GENES) selected.push(i);
+            ensureIndex().then(() => { renderSelectedBar(); renderChips(); runSearch(); });
+            renderSelectedBar(); renderChips();
+        });
+    });
+}
+
+function renderSelectedBar() {
+    if (selected.length === 0) {
+        selectedBar.innerHTML = '<span class="label">Selected genes</span>' +
+            '<span class="selected-empty">Pick up to ' + MAX_GENES + ' genes from the chips above</span>';
+        return;
+    }
+    const chips = selected.map(i =>
+        '<span class="selected-gene">' + esc(GENE_META[i].label) +
+        '<span class="remove" data-idx="' + i + '">×</span></span>').join('');
+    selectedBar.innerHTML = '<span class="label">Selected (' + selected.length + '/' + MAX_GENES + ')</span>' +
+        chips +
+        '<div class="mode-toggle">' +
+            '<button class="mode-btn ' + (matchMode === 'ANY' ? 'active' : '') + '" data-mode="ANY">Match ANY</button>' +
+            '<button class="mode-btn ' + (matchMode === 'ALL' ? 'active' : '') + '" data-mode="ALL">Match ALL</button>' +
+        '</div>';
+    selectedBar.querySelectorAll('.remove').forEach(el => {
+        el.addEventListener('click', () => {
+            selected = selected.filter(x => x !== parseInt(el.dataset.idx));
+            renderSelectedBar(); renderChips(); runSearch();
+        });
+    });
+    selectedBar.querySelectorAll('.mode-btn').forEach(b => {
+        b.addEventListener('click', () => {
+            matchMode = b.dataset.mode; renderSelectedBar(); runSearch();
+        });
+    });
+}
+
+function runSearch() {
+    if (!indexLoaded || selected.length === 0) {
+        results = []; renderResults(); return;
+    }
+    const matches = [];
+    for (const [acc, rec] of Object.entries(sampleIndex.samples)) {
+        const present = new Set(rec.g || []);
+        const okFlags = selected.map(i => present.has(i));
+        const ok = matchMode === 'ANY' ? okFlags.some(x => x) : okFlags.every(x => x);
+        if (ok) matches.push({
+            accession: acc, okFlags,
+            country: rec.c || '—', source: rec.s || '—', year: rec.y || '—'
+        });
+    }
+    results = matches;
+    currentPage = 1;
+    renderResults();
+}
+
+function renderHead() {
+    let html = '<tr><th>Accession</th>';
+    for (const i of selected) html += '<th style="text-align:center;">' + esc(GENE_META[i].label) + '</th>';
+    html += '<th>Country</th><th>Source</th><th>Year</th><th>Copy</th></tr>';
+    thead.innerHTML = html;
+}
+
+function renderResults() {
+    renderHead();
+    if (selected.length === 0) {
+        resultCount.innerHTML = '<span class="result-hint">No genes selected</span>';
+        tbody.innerHTML = '<tr><td colspan="99"><div class="empty-state"><div class="icon">🧬</div><div>Pick one or more genes above to retrieve matching genomes</div></div></td></tr>';
+        paginationEl.innerHTML = '';
+        updateExportButtons(); return;
+    }
+    if (!indexLoaded) {
+        resultCount.innerHTML = '<span class="result-hint">Waiting for index…</span>';
+        tbody.innerHTML = '<tr><td colspan="99"><div class="empty-state"><div class="icon">⏳</div><div>Loading sample index…</div></div></td></tr>';
+        paginationEl.innerHTML = '';
+        updateExportButtons(); return;
+    }
+    resultCount.innerHTML = '<strong>' + results.length.toLocaleString() + '</strong> genome' +
+        (results.length === 1 ? '' : 's') + ' match';
+    if (results.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="99"><div class="empty-state"><div class="icon">🔍</div><div>No genomes match your selection</div></div></td></tr>';
+        paginationEl.innerHTML = '';
+        updateExportButtons(); return;
+    }
+    const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * pageSize;
+    const slice = results.slice(start, start + pageSize);
+
+    tbody.innerHTML = slice.map(r => {
+        let cells = '<td class="accession-cell">' + esc(r.accession) + '</td>';
+        for (const ok of r.okFlags) cells += '<td class="' + (ok ? 'match-yes' : 'match-no') + '">' + (ok ? '✓' : '·') + '</td>';
+        cells += '<td class="meta-cell">' + esc(r.country) + '</td>';
+        cells += '<td class="meta-cell">' + esc(r.source) + '</td>';
+        cells += '<td class="meta-cell">' + esc(r.year) + '</td>';
+        cells += '<td><button class="copy-btn" data-acc="' + esc(r.accession) + '">📋</button></td>';
+        return '<tr>' + cells + '</tr>';
+    }).join('');
+
+    tbody.querySelectorAll('.copy-btn').forEach(b => {
+        b.addEventListener('click', () => {
+            navigator.clipboard.writeText(b.dataset.acc);
+            const o = b.textContent; b.textContent = '✓';
+            setTimeout(() => b.textContent = o, 1200);
+        });
+    });
+
+    paginationEl.innerHTML =
+        '<button id="prev-page"' + (currentPage === 1 ? ' disabled' : '') + '>← Prev</button>' +
+        '<span class="page-info">Page ' + currentPage + ' / ' + totalPages + ' · ' + results.length.toLocaleString() + ' matches</span>' +
+        '<button id="next-page"' + (currentPage === totalPages ? ' disabled' : '') + '>Next →</button>' +
+        '<label class="page-size-label">Show <select id="page-size">' +
+        '<option value="50"' + (pageSize === 50 ? ' selected' : '') + '>50</option>' +
+        '<option value="100"' + (pageSize === 100 ? ' selected' : '') + '>100</option>' +
+        '<option value="500"' + (pageSize === 500 ? ' selected' : '') + '>500</option>' +
+        '</select> per page</label>';
+
+    document.getElementById('prev-page').addEventListener('click', () => {
+        if (currentPage > 1) { currentPage--; renderResults(); }
+    });
+    document.getElementById('next-page').addEventListener('click', () => {
+        if (currentPage < totalPages) { currentPage++; renderResults(); }
+    });
+    document.getElementById('page-size').addEventListener('change', e => {
+        pageSize = parseInt(e.target.value); currentPage = 1; renderResults();
+    });
+    updateExportButtons();
+}
+
+function updateExportButtons() {
+    document.querySelectorAll('.export-btn').forEach(b => {
+        b.disabled = selected.length === 0 || results.length === 0;
+    });
+}
+
+document.querySelectorAll('.export-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (selected.length === 0 || results.length === 0) return;
+        const fmt = btn.dataset.fmt;
+        const stamp = new Date().toISOString().slice(0, 10);
+        const ids = selected.map(i => GENE_META[i].id).join('_');
+        const base = 'abyss_' + DB_KEY + '_' + ids + '_' + stamp;
+
+        if (fmt === 'accessions') {
+            download(base + '_accessions.txt', results.map(r => r.accession).join('\n'), 'text/plain');
+            return;
+        }
+        const geneLabels = selected.map(i => GENE_META[i].label);
+        const headers = ['Accession', ...geneLabels, 'Country', 'Source', 'Year'];
+
+        if (fmt === 'tsv' || fmt === 'csv') {
+            const sep = fmt === 'tsv' ? '\t' : ',';
+            const q = fmt === 'csv';
+            const lines = [headers.map(h => q ? '"' + h + '"' : h).join(sep)];
+            for (const r of results) {
+                const vals = [r.accession, ...r.okFlags.map(ok => ok ? '1' : '0'),
+                              r.country, r.source, r.year];
+                lines.push(vals.map(v => {
+                    const s = String(v == null ? '' : v);
+                    if (q) return '"' + s.replace(/"/g, '""') + '"';
+                    return s.replace(/\t/g, ' ');
+                }).join(sep));
+            }
+            download(base + '.' + fmt, lines.join('\n'),
+                fmt === 'tsv' ? 'text/tab-separated-values' : 'text/csv');
+        } else if (fmt === 'json') {
+            const out = results.map(r => {
+                const o = { accession: r.accession };
+                selected.forEach((i, k) => { o[GENE_META[i].label] = r.okFlags[k]; });
+                o.country = r.country; o.source = r.source; o.year = r.year;
+                return o;
+            });
+            download(base + '.json', JSON.stringify(out, null, 2), 'application/json');
+        }
+    });
+});
+
+// Frequency table
+const FREQ_DATA = [{"gene": "pilH", "n": 47727, "pct": 99.98, "occ": 47727}, {"gene": "gspO/pilD", "n": 47720, "pct": 99.96, "occ": 47720}, {"gene": "gspI", "n": 47718, "pct": 99.96, "occ": 47718}, {"gene": "gspM", "n": 47718, "pct": 99.96, "occ": 47718}, {"gene": "lpxM", "n": 47717, "pct": 99.96, "occ": 47717}, {"gene": "lpsB", "n": 47715, "pct": 99.95, "occ": 47715}, {"gene": "lpxA", "n": 47715, "pct": 99.95, "occ": 47715}, {"gene": "pilF", "n": 47715, "pct": 99.95, "occ": 47715}, {"gene": "gspE1", "n": 47712, "pct": 99.95, "occ": 47712}, {"gene": "pbpG", "n": 47712, "pct": 99.95, "occ": 47712}, {"gene": "pilG", "n": 47711, "pct": 99.94, "occ": 47711}, {"gene": "bfmS", "n": 47709, "pct": 99.94, "occ": 47709}, {"gene": "lpxD", "n": 47707, "pct": 99.94, "occ": 47707}, {"gene": "pilM", "n": 47707, "pct": 99.94, "occ": 47707}, {"gene": "pilP", "n": 47706, "pct": 99.93, "occ": 47706}, {"gene": "ompA", "n": 47705, "pct": 99.93, "occ": 47705}, {"gene": "gspH", "n": 47704, "pct": 99.93, "occ": 47704}, {"gene": "bfmR", "n": 47701, "pct": 99.92, "occ": 47701}, {"gene": "gspL", "n": 47699, "pct": 99.92, "occ": 47699}, {"gene": "gspC", "n": 47697, "pct": 99.91, "occ": 47697}, {"gene": "lpxL", "n": 47697, "pct": 99.91, "occ": 47697}, {"gene": "pilI", "n": 47697, "pct": 99.91, "occ": 47697}, {"gene": "gspF", "n": 47693, "pct": 99.91, "occ": 47693}, {"gene": "lpxC", "n": 47693, "pct": 99.91, "occ": 47693}, {"gene": "plcD", "n": 47692, "pct": 99.9, "occ": 47692}, {"gene": "lpxB", "n": 47684, "pct": 99.89, "occ": 47684}, {"gene": "gspN", "n": 47683, "pct": 99.88, "occ": 47683}, {"gene": "pilO", "n": 47683, "pct": 99.88, "occ": 47683}, {"gene": "fimT", "n": 47680, "pct": 99.88, "occ": 47680}, {"gene": "pilN", "n": 47680, "pct": 99.88, "occ": 47680}, {"gene": "pilT", "n": 47680, "pct": 99.88, "occ": 47680}, {"gene": "fimV", "n": 47678, "pct": 99.87, "occ": 47678}, {"gene": "gspD", "n": 47678, "pct": 99.87, "occ": 47678}, {"gene": "pilU", "n": 47672, "pct": 99.86, "occ": 47672}, {"gene": "barB", "n": 47669, "pct": 99.86, "occ": 47669}, {"gene": "gspK", "n": 47660, "pct": 99.84, "occ": 47660}, {"gene": "pilR", "n": 47649, "pct": 99.81, "occ": 47649}, {"gene": "ACICU_RS00500", "n": 47646, "pct": 99.81, "occ": 47646}, {"gene": "tsaP", "n": 47642, "pct": 99.8, "occ": 47642}, {"gene": "barA", "n": 47631, "pct": 99.78, "occ": 47631}, {"gene": "basF", "n": 47629, "pct": 99.77, "occ": 47629}, {"gene": "basH", "n": 47628, "pct": 99.77, "occ": 47628}, {"gene": "adeH", "n": 47626, "pct": 99.77, "occ": 47626}, {"gene": "basG", "n": 47610, "pct": 99.73, "occ": 47610}, {"gene": "entE", "n": 47608, "pct": 99.73, "occ": 47608}, {"gene": "ACICU_RS00485", "n": 47586, "pct": 99.68, "occ": 47586}, {"gene": "adeF", "n": 47584, "pct": 99.68, "occ": 47584}, {"gene": "bauC", "n": 47581, "pct": 99.67, "occ": 47581}, {"gene": "bauE", "n": 47581, "pct": 99.67, "occ": 47581}, {"gene": "bauD", "n": 47571, "pct": 99.65, "occ": 47571}, {"gene": "bauB", "n": 47570, "pct": 99.65, "occ": 47570}, {"gene": "gspG", "n": 47568, "pct": 99.64, "occ": 47568}, {"gene": "pgaD", "n": 47567, "pct": 99.64, "occ": 47567}, {"gene": "basC", "n": 47557, "pct": 99.62, "occ": 47557}, {"gene": "pgi", "n": 47550, "pct": 99.61, "occ": 47550}, {"gene": "bauF", "n": 47549, "pct": 99.6, "occ": 47549}, {"gene": "pilJ", "n": 47546, "pct": 99.6, "occ": 47546}, {"gene": "pilS", "n": 47546, "pct": 99.6, "occ": 47546}, {"gene": "basA", "n": 47543, "pct": 99.59, "occ": 47543}, {"gene": "basB", "n": 47541, "pct": 99.59, "occ": 47541}, {"gene": "adeG", "n": 47478, "pct": 99.46, "occ": 47478}, {"gene": "gspE2", "n": 47462, "pct": 99.42, "occ": 47462}, {"gene": "plc2", "n": 47398, "pct": 99.29, "occ": 47398}, {"gene": "galU", "n": 47391, "pct": 99.27, "occ": 47391}, {"gene": "pgaA", "n": 47390, "pct": 99.27, "occ": 47390}, {"gene": "basD", "n": 47379, "pct": 99.25, "occ": 47379}, {"gene": "pgaC", "n": 47378, "pct": 99.25, "occ": 47378}, {"gene": "plc1", "n": 47375, "pct": 99.24, "occ": 47375}, {"gene": "pgaB", "n": 47362, "pct": 99.21, "occ": 47362}, {"gene": "pilB", "n": 47258, "pct": 98.99, "occ": 47258}, {"gene": "basJ", "n": 47227, "pct": 98.93, "occ": 47227}, {"gene": "pilC", "n": 47216, "pct": 98.91, "occ": 47216}, {"gene": "pilQ", "n": 47178, "pct": 98.83, "occ": 47178}, {"gene": "ACICU_RS04610", "n": 47012, "pct": 98.48, "occ": 47012}, {"gene": "ACICU_RS04565", "n": 47010, "pct": 98.48, "occ": 47010}, {"gene": "basI", "n": 46521, "pct": 97.45, "occ": 46521}, {"gene": "vgrG/tssI", "n": 46133, "pct": 96.64, "occ": 46133}, {"gene": "abaI", "n": 45220, "pct": 94.73, "occ": 45220}, {"gene": "abaR", "n": 44772, "pct": 93.79, "occ": 44772}, {"gene": "galE", "n": 44662, "pct": 93.56, "occ": 44662}, {"gene": "ACICU_RS00400", "n": 43157, "pct": 90.4, "occ": 43157}, {"gene": "ACICU_RS00405", "n": 43117, "pct": 90.32, "occ": 43117}, {"gene": "ACICU_RS00395", "n": 43037, "pct": 90.15, "occ": 43037}, {"gene": "pilE", "n": 42899, "pct": 89.86, "occ": 42899}, {"gene": "ACICU_RS16840", "n": 42897, "pct": 89.86, "occ": 42897}, {"gene": "pilV", "n": 42879, "pct": 89.82, "occ": 42879}, {"gene": "pilX", "n": 42873, "pct": 89.81, "occ": 42873}, {"gene": "fimU", "n": 42822, "pct": 89.7, "occ": 42822}, {"gene": "pilW", "n": 42816, "pct": 89.69, "occ": 42816}, {"gene": "pilY1", "n": 42365, "pct": 88.74, "occ": 42365}, {"gene": "tagX", "n": 41043, "pct": 85.98, "occ": 41043}, {"gene": "tssL", "n": 40912, "pct": 85.7, "occ": 40912}, {"gene": "tssK", "n": 39409, "pct": 82.55, "occ": 39409}, {"gene": "csuC", "n": 39355, "pct": 82.44, "occ": 39355}, {"gene": "tssA", "n": 39332, "pct": 82.39, "occ": 39332}, {"gene": "csuE", "n": 39065, "pct": 81.83, "occ": 39065}, {"gene": "clpV/tssH", "n": 38963, "pct": 81.62, "occ": 38963}, {"gene": "csuD", "n": 38942, "pct": 81.57, "occ": 38942}, {"gene": "tssM", "n": 38685, "pct": 81.04, "occ": 38685}, {"gene": "csuA/B", "n": 38599, "pct": 80.86, "occ": 38599}, {"gene": "csuB", "n": 38413, "pct": 80.47, "occ": 38413}, {"gene": "hcp/tssD", "n": 38342, "pct": 80.32, "occ": 38342}, {"gene": "tssE", "n": 38329, "pct": 80.29, "occ": 38329}, {"gene": "tssG", "n": 38227, "pct": 80.08, "occ": 38227}, {"gene": "tssC", "n": 38221, "pct": 80.06, "occ": 38221}, {"gene": "csuA", "n": 37967, "pct": 79.53, "occ": 37967}, {"gene": "tssB", "n": 37949, "pct": 79.49, "occ": 37949}, {"gene": "tssF", "n": 37705, "pct": 78.98, "occ": 37705}, {"gene": "hemO", "n": 36001, "pct": 75.41, "occ": 36001}, {"gene": "ACICU_RS04605", "n": 35999, "pct": 75.41, "occ": 35999}, {"gene": "ACICU_RS04570", "n": 35996, "pct": 75.4, "occ": 35996}, {"gene": "ACICU_RS04575", "n": 35966, "pct": 75.34, "occ": 35966}, {"gene": "ACICU_RS04595", "n": 35962, "pct": 75.33, "occ": 35962}, {"gene": "ACICU_RS04585", "n": 35855, "pct": 75.11, "occ": 35855}, {"gene": "ACICU_RS04580", "n": 35838, "pct": 75.07, "occ": 35838}, {"gene": "ACICU_RS04590", "n": 35700, "pct": 74.78, "occ": 35700}, {"gene": "bap", "n": 34387, "pct": 72.03, "occ": 34387}, {"gene": "bauA", "n": 33661, "pct": 70.51, "occ": 33661}, {"gene": "pilA", "n": 31181, "pct": 65.32, "occ": 31181}, {"gene": "ACICU_RS00475", "n": 30286, "pct": 63.44, "occ": 30286}, {"gene": "tviB", "n": 23987, "pct": 50.25, "occ": 23987}, {"gene": "ACICU_RS00470*", "n": 13402, "pct": 28.07, "occ": 13402}, {"gene": "pseF", "n": 13285, "pct": 27.83, "occ": 13285}, {"gene": "pseB", "n": 13284, "pct": 27.83, "occ": 13284}, {"gene": "pseI", "n": 13284, "pct": 27.83, "occ": 13284}, {"gene": "pseC", "n": 13272, "pct": 27.8, "occ": 13272}, {"gene": "pseH", "n": 11555, "pct": 24.21, "occ": 11555}, {"gene": "pseG", "n": 11549, "pct": 24.19, "occ": 11549}, {"gene": "ACICU_RS00445", "n": 9658, "pct": 20.23, "occ": 9658}, {"gene": "ACICU_RS00455*", "n": 9609, "pct": 20.13, "occ": 9609}, {"gene": "ACICU_RS00450", "n": 9369, "pct": 19.63, "occ": 9369}, {"gene": "ACICU_RS00465", "n": 9254, "pct": 19.38, "occ": 9254}, {"gene": "ACICU_RS00460", "n": 9142, "pct": 19.15, "occ": 9142}, {"gene": "cpaA", "n": 2775, "pct": 5.81, "occ": 2775}, {"gene": "ata", "n": 2438, "pct": 5.11, "occ": 2438}, {"gene": "tse1", "n": 1497, "pct": 3.14, "occ": 1497}, {"gene": "tse2", "n": 814, "pct": 1.71, "occ": 814}, {"gene": "tse3", "n": 349, "pct": 0.73, "occ": 349}, {"gene": "tse4", "n": 230, "pct": 0.48, "occ": 230}, {"gene": "hcpA", "n": 7, "pct": 0.01, "occ": 7}, {"gene": "esaG", "n": 5, "pct": 0.01, "occ": 5}, {"gene": "east1", "n": 4, "pct": 0.01, "occ": 4}, {"gene": "phzD1", "n": 4, "pct": 0.01, "occ": 4}, {"gene": "motA", "n": 4, "pct": 0.01, "occ": 4}, {"gene": "fliQ", "n": 4, "pct": 0.01, "occ": 4}, {"gene": "sciN/tssJ", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mucA", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "pscS", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "phzF1", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "fimB", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "xcpP", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mbtH-like", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "flgC", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "phzC1", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "phzE1", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mrkA", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mrkB", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mrkC", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mrkD", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mrkF", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mrkJ", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "iutA", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "fimE", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "cheZ", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "hcp1", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "pscU", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "PA1464", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "PA3142", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "cheY", "n": 3, "pct": 0.01, "occ": 3}, {"gene": "mucE", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "pchB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "exsD", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "toxA", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "phzG2", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "vipA/tssB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "vipB/tssC", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "AAA92657", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fimI", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "cap8M", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "iroE", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "iucB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "iucC", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "iucD", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "papB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "isdI", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "chpC", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fapC", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "algR", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "flgI", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fliP", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "exoT", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "algU", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "hsiE1", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "vgrG1a", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "flgN", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "crc", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "pscD", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "PA3143", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "csgB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "csgC", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "csgA", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "pchH", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpQ", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpR", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpS", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpT", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpU", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpV", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpW", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpX", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpY", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "xcpZ", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fimX", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "motB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "PA3349", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "alg44", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "algG", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "algQ", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "algW", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "exsA", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fapD", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fleI/flaG", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fleP/fliT", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fleQ", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "flgB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fliC", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fliD", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fliL", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fliR", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fliS", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "hsiC1/vipB/tssC", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "hsiF1/tssE", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "lasI", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "lasR", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "pcrV", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "phzA2", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "phzB2", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "pilY2", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "pscR", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "pscT", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "rhlI", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "rhlR", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "rpoN", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "rpoS", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "spcS", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "tssJ", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "vfr", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "entB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fepB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fimC", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "fimH", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "rcsB", "n": 2, "pct": 0.0, "occ": 2}, {"gene": "esxA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "sea", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "set18", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "capN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "hlb", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "icaD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "srtB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cap8B", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cap8C", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "isdG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "capA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cap8F", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "sspC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "iroB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "iroC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "iroD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "iroN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "iucA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "papI", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cytK", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "lcrE/yopN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "sycN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "sycT", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tyeA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "virG/yscW", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "ylpB/yscJ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yopR/yscH/lcrP", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yscD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yscE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yscF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yscG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yscO", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yscX", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "esxM", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "spaQ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flhC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cheW", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "esxB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "acpXL", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "exoU", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA1458", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA1459", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA1663", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA1664", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA1665", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA2359", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA2364", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA2383", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA2384", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA3348", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA4218", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA4219", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "PA4220", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "alg8", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algI", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algJ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algK", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algL", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algX", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "algZ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "aprA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "chpA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "chpB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "chpD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "chpE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "clpV1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "dotU1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "exoS", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "exoY", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "exsB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "exsC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "exsE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fapA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fapB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fapE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fapF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fha1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fimL", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fleN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fleR", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fleS", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgJ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgK", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgL", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flgM", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flhA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flhB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "flhF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliI", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliJ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliK", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliM", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fliO", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fptA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fpvI", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fpvR", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "hsiA1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "hsiB1/vipA/tssB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "hsiG1/tssF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "hsiH1/tssG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "hsiJ1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "icmF1/tssM1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "icmH/tssL", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "lasA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "lasB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "lip1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "motC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "motD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "motY", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "mucB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "mucC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "mucD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "mucP", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pchA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pchC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pchD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pchE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pchF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pchG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pchI", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pchR", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pcr1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pcr2", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pcr3", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pcr4", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pcrD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pcrG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pcrH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pcrR", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "phzA1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "phzB1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "phzH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "phzM", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "phzS", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pilK", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pilZ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "plcH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pldB/tle5b", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "popB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "popD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "popN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "ppkA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pppA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscI", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscJ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscK", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscL", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscO", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscP", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pscQ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "ptxR", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvcA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvcB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvcC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvcD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdL", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdM", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdN", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdO", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdP", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdQ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdS", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pvdY", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "rhlA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "rhlB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "rhlC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "stk1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "stp1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tagF/pppB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tagQ", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tagR", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tagS", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tagT", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tse5/rhsP1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tse6", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tssH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "tssI", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "vgrG1b", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "vgrG2b", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "waaA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "waaC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "waaF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "waaG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "waaP", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "wbpM", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "xcpA/pilD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "allB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "aslA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cgsD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cgsF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cgsG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "cheB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "espL1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "espL4", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "espY1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fepE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "gtrA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "gtrB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "pmrA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "KP1_RS17280", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "KP1_RS17345", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "KP1_RS17355", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "acrA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "acrB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "dotU/tssL", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "entA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "entC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "entD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "entF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "entS", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fepA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fepC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fepD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fepG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fes", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fimA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fimD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fimF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fimG", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fimK", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "fur", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "galF", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "gndA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "icmF/tssM", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "mrkH", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "mrkI", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "rcsA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "rfbK1", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "ugd", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "vasE/tssK", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yagV/ecpE", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yagW/ecpD", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yagX/ecpC", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yagY/ecpB", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "yagZ/ecpA", "n": 1, "pct": 0.0, "occ": 1}, {"gene": "ykgK/ecpR", "n": 1, "pct": 0.0, "occ": 1}];
+let freqSortKey = 'pct', freqSortAsc = false;
+
+function freqRender() {
+    const term = (document.getElementById('freq-search').value || '').toLowerCase();
+    const minPct = parseFloat(document.getElementById('freq-min-pct').value) || 0;
+    const rows = FREQ_DATA.filter(r => {
+        if (term && r.gene.toLowerCase().indexOf(term) === -1) return false;
+        if (r.pct < minPct) return false;
+        return true;
+    }).sort((a, b) => {
+        const av = a[freqSortKey], bv = b[freqSortKey];
+        if (typeof av === 'number') return freqSortAsc ? av - bv : bv - av;
+        return freqSortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+    });
+
+    const thead2 = document.getElementById('freq-head');
+    const tbody2 = document.getElementById('freq-body');
+    const cols = [
+        { key: 'gene', label: 'Gene' },
+        { key: 'n',    label: 'Genomes', right: true },
+        { key: 'pct',  label: 'Prevalence' },
+        { key: 'occ',  label: 'Occurrences', right: true },
+    ];
+    thead2.innerHTML = '<tr>' + cols.map(c => {
+        const cls = freqSortKey === c.key ? (freqSortAsc ? 'sorted-asc' : 'sorted-desc') : '';
+        return '<th class="sortable ' + cls + '" data-fkey="' + c.key + '">' + c.label + '</th>';
+    }).join('') + '</tr>';
+    thead2.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+            const k = th.dataset.fkey;
+            if (freqSortKey === k) freqSortAsc = !freqSortAsc;
+            else { freqSortKey = k; freqSortAsc = false; }
+            freqRender();
+        });
+    });
+    if (rows.length === 0) {
+        tbody2.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="icon">🔍</div><div>No genes match</div></div></td></tr>';
+        return;
+    }
+    tbody2.innerHTML = rows.slice(0, 2000).map(r => {
+        const w = Math.max(1, Math.min(100, r.pct));
+        const color = r.pct >= 50 ? '#991b1b' : (r.pct >= 10 ? '#b45309' : '#64748b');
+        return '<tr>' +
+            '<td><span class="gene-name">' + esc(r.gene) + '</span></td>' +
+            '<td class="num-cell">' + r.n.toLocaleString() + '</td>' +
+            '<td><div class="prev-cell"><div class="prev-bar-track"><div class="prev-bar-fill" style="width:' + w + '%;"></div></div>' +
+            '<span class="prev-value" style="color:' + color + '">' + r.pct.toFixed(2) + '%</span></div></td>' +
+            '<td class="num-cell">' + r.occ.toLocaleString() + '</td>' +
+            '</tr>';
+    }).join('');
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        if (btn.dataset.tab === 'freq') freqRender();
+    });
+});
+['freq-search', 'freq-min-pct'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+        clearTimeout(window._ft);
+        window._ft = setTimeout(freqRender, 200);
+    });
+});
+
+renderChips();
+renderSelectedBar();
+renderResults();
+freqRender();
+document.getElementById('chip-row').addEventListener('click', ensureIndex, { once: true });
+</script>
+</body>
+</html>
