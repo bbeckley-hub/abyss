@@ -38,7 +38,7 @@
 | **Typing** | Pasteur MLST · International Clones (IC1–IC12) · OXA-51 variants · Kaptive KL + OCL capsule |
 | **Genes** | AMR (carbapenemase-aware) · Virulence (VFDB) · Plasmid replicons |
 | **Epidemiology** | Country · isolation source · host · collection year |
-| **Lineage context** | Data-derived IC catalogue with live counts |
+| **Lineage contexts** | Data-derived IC catalogue with live counts |
 | **Retrieval** | Search → filter → export accession lists in one click |
 
 No login, no API key, no install. Runs entirely in your browser over HTTPS.
